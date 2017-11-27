@@ -2,16 +2,16 @@
 
 struct Complex
 {
-  float real;
-  float imaginary;
+  float r;
+  float i;
 };
 
 int main()
 {
   struct Complex c;
-  c.real = 12;
-  c.imaginary = 11;
+  c.r = 12;
+  c.i = 11;
 
-  printf("%f", c.real);
+  printf("%f\n", c.r);
   return 0;
 }
