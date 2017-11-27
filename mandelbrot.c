@@ -1,17 +1,17 @@
 #include <stdio.h>
 
-struct Complex
+typedef struct
 {
   float r;
   float i;
-};
+} Complex;
+
 
 int main()
 {
-  struct Complex c;
-  c.r = 12;
-  c.i = 11;
+  Complex c = { 12, 11 };
 
   printf("%f\n", c.r);
+
   return 0;
 }
