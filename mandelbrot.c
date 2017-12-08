@@ -98,7 +98,7 @@ void write_ppm(Image img, char* dest)
 }
 
 
-int mandelbrot(Complex c, Complex z, int i)
+int mandel(Complex c, Complex z, int i)
 {
   /*
    * Returns number of iterations until the absolute value of z > 2 or
@@ -106,8 +106,15 @@ int mandelbrot(Complex c, Complex z, int i)
    */
 
   if (absx(z) > 2) return i;
-  if (i > 1000) return i;
-  return mandelbrot(c, addx(multx(z,z), c), ++i);
+  if (i >= 1000) return i;
+  return mandel(c, addx(multx(z,z), c), ++i);
+}
+
+
+int mandelbrot(Complex c)
+{
+  Complex zero = { 0, 0 };
+  return mandel(c, zero, 0);
 }
 
 
