@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct Complex
 {
@@ -45,6 +46,7 @@ Image create_image(int w, int h)
   return img;
 }
 
+
 void free_image_memory(Image img)
 {
   int i;
@@ -54,18 +56,21 @@ void free_image_memory(Image img)
   free(img.pxs);
 }
 
+
 void write_ppm(Image img, char* dest)
 {
-  /* open dest file.. */
-  /* write ppm header.. */
-  /* write pixel data.. */
-  /* close file.. */
+  int x=0, y=0;
 
-  img.pxs[0][0].r = 255;
-  img.pxs[0][0].g = 255;
-  img.pxs[0][0].b = 255;
+  FILE* f = fopen(dest, "w");
+  fprintf(f, "P6 %d %d 255\n", img.w, img.h); /* ppm header */
 
-  printf("%i\n", img.pxs[0][0].r);
+  for (y=0; y < img.h; y++) {
+    for (x=0; x < img.w; x++) {
+      fwrite(img.pxs[x], sizeof(img.pxs[x]), 1, f);
+    }
+  }
+
+  fclose(f);
 }
 
 
@@ -73,7 +78,7 @@ int main()
 {
   Image img = create_image(1024, 1024);
 
-  write_ppm(img, "img/image.ppm");
+  write_ppm(img, "image.ppm");
 
   free_image_memory(img);
   return 0;
