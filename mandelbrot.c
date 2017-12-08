@@ -10,6 +10,15 @@ typedef struct Complex
 } Complex;
 
 
+Complex addx(Complex c1, Complex c2)
+{
+  Complex res;
+  res.r = c1.r + c2.r;
+  res.i = c1.i + c2.i;
+  return res;
+}
+
+
 Complex multx(Complex c1, Complex c2)
 {
   Complex res;
@@ -89,12 +98,16 @@ void write_ppm(Image img, char* dest)
 }
 
 
-int mandelbrot(int c, int z, int i)
+int mandelbrot(Complex c, Complex z, int i)
 {
   /*
-   *  Returns number of iterations until the absolute value of z > 2 or
+   * Returns number of iterations until the absolute value of z > 2 or
    * we reach a recursion boundary.
    */
+
+  if (absx(z) > 2) return i;
+  if (i > 1000) return i;
+  return mandelbrot(c, addx(multx(z,z), c), ++i);
 }
 
 
