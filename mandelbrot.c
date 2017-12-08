@@ -60,7 +60,6 @@ void free_image_memory(Image img)
 void write_ppm(Image img, char* dest)
 {
   int x=0, y=0;
-  Pixel px;
 
   FILE* f = fopen(dest, "w");
   fprintf(f, "P6 %d %d 255 ", img.w, img.h); /* ppm header */
