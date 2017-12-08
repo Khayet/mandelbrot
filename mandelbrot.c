@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <math.h>
 
 typedef struct Complex
 {
@@ -15,6 +16,12 @@ Complex multx(Complex c1, Complex c2)
   res.r = c1.r * c2.r - c1.i * c2.i;
   res.i = c1.r * c2.i + c1.i * c2.r;
   return res;
+}
+
+
+float absx(Complex c)
+{
+  return sqrt(c.r*c.r + c.i*c.i);
 }
 
 
@@ -84,7 +91,10 @@ void write_ppm(Image img, char* dest)
 
 int mandelbrot(int c, int z, int i)
 {
-  /* Returns number of iterations until z */
+  /*
+   *  Returns number of iterations until the absolute value of z > 2 or
+   * we reach a recursion boundary.
+   */
 }
 
 
