@@ -126,18 +126,11 @@ Pixel mandelbrot_pixel(Complex c)
    */
 
   Pixel px;
-  if (c.i >= 0) {
-    px.r = 255, px.g = 0, px.b = 255;
+  if (mandelbrot(c) > 999) {
+    px.r = 255, px.g = 255, px.b = 255;
   }
   else {
-    px.r = 0, px.g = 0, px.b = 255;
-  }
-
-  if (c.r >= 0) {
-    px.g = 255;
-  }
-  else {
-    px.g = 0;
+    px.r = 0, px.g = 0, px.b = 0;
   }
 
   return px;
