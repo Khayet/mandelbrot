@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 typedef struct Complex
 {
@@ -29,7 +28,6 @@ typedef struct Image
 Image create_image(int w, int h)
 {
   /* column-first -> our images are lists of columns */
-  /* TODO: this is performance critical, research. */
 
   Image img;
   Pixel** pxdata = malloc(w * sizeof(uint8_t*));
@@ -63,6 +61,8 @@ void write_ppm(Image img, char* dest)
 
   FILE* f = fopen(dest, "w");
   fprintf(f, "P6 %d %d 255 ", img.w, img.h); /* ppm header */
+
+  /* row-first to conform to ppm specs. */
   for (y=0; y < img.h; y++) {
     for (x=0; x < img.w; x++) {
       fwrite(&img.pxs[x][y], sizeof(Pixel), 1, f);
