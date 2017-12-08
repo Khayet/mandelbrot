@@ -9,6 +9,15 @@ typedef struct Complex
 } Complex;
 
 
+Complex multx(Complex c1, Complex c2)
+{
+  Complex res;
+  res.r = c1.r * c2.r - c1.i * c2.i;
+  res.i = c1.r * c2.i + c1.i * c2.r;
+  return res;
+}
+
+
 typedef struct Pixel
 {
   uint8_t r;
@@ -73,7 +82,13 @@ void write_ppm(Image img, char* dest)
 }
 
 
-Pixel mandelbrot(Complex c)
+int mandelbrot(int c, int z, int i)
+{
+  /* Returns number of iterations until z */
+}
+
+
+Pixel mandelbrot_pixel(Complex c)
 {
   /*
    * Receives a complex number (location in complex plane) and returns the
@@ -116,7 +131,7 @@ void visualize_mandelbrot(Image img, Complex first, Complex second)
   Complex sample = first;
   for (x = 0; x < img.w; ++x) {
     for (y = 0; y < img.h; ++y) {
-      img.pxs[x][y] = mandelbrot(sample);
+      img.pxs[x][y] = mandelbrot_pixel(sample);
       sample.i -= sample_size_i;
     }
     sample.i = first.i;
@@ -130,6 +145,7 @@ int main()
   Image img = create_image(1024, 1024);
   Complex c1 = { -2, 1 };
   Complex c2 = { 1, -1 };
+
   visualize_mandelbrot(img, c1, c2);
 
   write_ppm(img, "image.ppm");
