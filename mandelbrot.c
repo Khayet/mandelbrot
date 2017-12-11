@@ -1,17 +1,16 @@
 #include <stdio.h> /* FILE, printf, fprintf, fwrite, fclose */
-#include <stdint.h> /* uint8_t */
 #include <stdlib.h> /* malloc, free */
 
 #include "complex.h" /* Complex, addx, multx, absx */
 
 #define LIMIT 500
-#define THRESHOLD 20000
+#define THRESHOLD 2
 
 typedef struct Pixel
 {
-  uint8_t r;
-  uint8_t g;
-  uint8_t b;
+  unsigned char r;
+  unsigned char g;
+  unsigned char b;
 } Pixel;
 
 
@@ -28,7 +27,7 @@ Image create_image(int w, int h)
   /* column-first -> our images are lists of columns */
 
   Image img;
-  Pixel** pxdata = malloc(w * sizeof(uint8_t*));
+  Pixel** pxdata = malloc(w * sizeof(unsigned char*));
 
   int i;
   for (i = 0; i < w; ++i) {
@@ -71,7 +70,7 @@ void write_ppm(Image img, char* dest)
 }
 
 
-uint8_t mandel(Complex c, Complex z, uint16_t i)
+int mandel(Complex c, Complex z, int i)
 {
   /*
    * Returns number of iterations until the absolute value of z > 2 or
@@ -84,7 +83,7 @@ uint8_t mandel(Complex c, Complex z, uint16_t i)
 }
 
 
-uint8_t mandelbrot(Complex c)
+int mandelbrot(Complex c)
 {
   Complex zero = { 0, 0 };
   return mandel(c, zero, 0);
@@ -99,7 +98,7 @@ Pixel transfer(Complex c)
    */
 
   Pixel px;
-  uint16_t iterations = mandelbrot(c);
+  int iterations = mandelbrot(c);
   px.r = iterations;
   px.g = iterations;
   px.b = iterations;
