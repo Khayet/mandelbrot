@@ -4,8 +4,8 @@
 
 #include "complex.h" /* Complex, addx, multx, absx */
 
-#define LIMIT 255
-
+#define LIMIT 500
+#define THRESHOLD 20000
 
 typedef struct Pixel
 {
@@ -71,14 +71,14 @@ void write_ppm(Image img, char* dest)
 }
 
 
-uint8_t mandel(Complex c, Complex z, uint8_t i)
+uint8_t mandel(Complex c, Complex z, uint16_t i)
 {
   /*
    * Returns number of iterations until the absolute value of z > 2 or
    * we reach a recursion boundary.
    */
 
-  if (absx(z) > 20000) return i;
+  if ((z.r*z.r + z.i*z.i) > THRESHOLD*THRESHOLD) return i;
   if (i >= LIMIT) return i;
   return mandel(c, addx(multx(z,z), c), ++i);
 }
@@ -99,9 +99,10 @@ Pixel transfer(Complex c)
    */
 
   Pixel px;
-  px.r = mandelbrot(c);
-  px.g = mandelbrot(c);
-  px.b = mandelbrot(c);
+  uint16_t iterations = mandelbrot(c);
+  px.r = iterations;
+  px.g = iterations;
+  px.b = iterations;
 
   return px;
 }
@@ -135,10 +136,11 @@ void visualize_mandelbrot(Image img, Complex first, Complex second)
 
 int main()
 {
-  Image img = create_image(900, 600);
+  Image img = create_image(1800, 1200);
   Complex c1 = { -2, 1 };
   Complex c2 = { 1, -1 };
 
+  /* TODO: separate calculation of iterations and visualization */
   visualize_mandelbrot(img, c1, c2);
 
   write_ppm(img, "image.ppm");

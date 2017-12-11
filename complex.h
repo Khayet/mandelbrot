@@ -11,7 +11,6 @@ typedef struct Complex
 
 Complex addx(Complex c1, Complex c2);
 Complex multx(Complex c1, Complex c2);
-float absx(Complex c);
 
 
 #endif /* COMPLEX_H */

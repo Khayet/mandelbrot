@@ -16,9 +16,3 @@ Complex multx(Complex c1, Complex c2)
   res.i = c1.r * c2.i + c1.i * c2.r;
   return res;
 }
-
-
-float absx(Complex c)
-{
-  return sqrt(c.r*c.r + c.i*c.i);
-}
