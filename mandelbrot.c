@@ -1,38 +1,10 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <math.h>
+#include <stdio.h> /* FILE, printf, fprintf, fwrite, fclose */
+#include <stdint.h> /* uint8_t */
+#include <stdlib.h> /* malloc, free */
 
-typedef struct Complex
-{
-  float r;
-  float i;
-} Complex;
+#include "complex.h" /* Complex, addx, multx, absx */
 
-
-Complex addx(Complex c1, Complex c2)
-{
-  Complex res;
-  res.r = c1.r + c2.r;
-  res.i = c1.i + c2.i;
-  return res;
-}
-
-
-Complex multx(Complex c1, Complex c2)
-{
-  Complex res;
-  res.r = c1.r * c2.r - c1.i * c2.i;
-  res.i = c1.r * c2.i + c1.i * c2.r;
-  return res;
-}
-
-
-float absx(Complex c)
-{
-  return sqrt(c.r*c.r + c.i*c.i);
-}
-
+#define LIMIT 255
 
 typedef struct Pixel
 {
@@ -98,27 +70,27 @@ void write_ppm(Image img, char* dest)
 }
 
 
-int mandel(Complex c, Complex z, int i)
+uint8_t mandel(Complex c, Complex z, uint8_t i)
 {
   /*
    * Returns number of iterations until the absolute value of z > 2 or
    * we reach a recursion boundary.
    */
 
-  if (absx(z) > 2) return i;
-  if (i >= 1000) return i;
+  if (absx(z) > 20000) return i;
+  if (i >= LIMIT) return i;
   return mandel(c, addx(multx(z,z), c), ++i);
 }
 
 
-int mandelbrot(Complex c)
+uint8_t mandelbrot(Complex c)
 {
   Complex zero = { 0, 0 };
   return mandel(c, zero, 0);
 }
 
 
-Pixel mandelbrot_pixel(Complex c)
+Pixel transfer(Complex c)
 {
   /*
    * Receives a complex number (location in complex plane) and returns the
@@ -126,12 +98,12 @@ Pixel mandelbrot_pixel(Complex c)
    */
 
   Pixel px;
-  if (mandelbrot(c) > 999) {
-    px.r = 255, px.g = 255, px.b = 255;
-  }
-  else {
-    px.r = 0, px.g = 0, px.b = 0;
-  }
+  px.r = 0;
+  px.g = 0;
+  px.b = 0;
+
+  /*if (mandelbrot(c) <= 10) px.r = 100;*/
+  if (mandelbrot(c) >= 11) px.r = mandelbrot(c);
 
   return px;
 }
@@ -154,7 +126,7 @@ void visualize_mandelbrot(Image img, Complex first, Complex second)
   Complex sample = first;
   for (x = 0; x < img.w; ++x) {
     for (y = 0; y < img.h; ++y) {
-      img.pxs[x][y] = mandelbrot_pixel(sample);
+      img.pxs[x][y] = transfer(sample);
       sample.i -= sample_size_i;
     }
     sample.i = first.i;
@@ -165,7 +137,7 @@ void visualize_mandelbrot(Image img, Complex first, Complex second)
 
 int main()
 {
-  Image img = create_image(1024, 1024);
+  Image img = create_image(300, 200);
   Complex c1 = { -2, 1 };
   Complex c2 = { 1, -1 };
 
@@ -174,5 +146,6 @@ int main()
   write_ppm(img, "image.ppm");
 
   free_image_memory(img);
+  printf("Done!\n");
   return 0;
 }
