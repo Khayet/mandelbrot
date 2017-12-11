@@ -6,6 +6,7 @@
 
 #define LIMIT 255
 
+
 typedef struct Pixel
 {
   uint8_t r;
@@ -98,11 +99,9 @@ Pixel transfer(Complex c)
    */
 
   Pixel px;
-  px.r = 0;
-  px.g = 0;
-  px.b = 0;
-
   px.r = mandelbrot(c);
+  px.g = mandelbrot(c);
+  px.b = mandelbrot(c);
 
   return px;
 }
@@ -136,7 +135,7 @@ void visualize_mandelbrot(Image img, Complex first, Complex second)
 
 int main()
 {
-  Image img = create_image(300, 200);
+  Image img = create_image(900, 600);
   Complex c1 = { -2, 1 };
   Complex c2 = { 1, -1 };
 
