@@ -56,7 +56,7 @@ void write_ppm(Image img, char* dest)
 {
   int x, y;
 
-  FILE* f = fopen(dest, "w");
+  FILE* f = fopen(dest, "wb");
   fprintf(f, "P6 %d %d 255 ", img.w, img.h); /* ppm header */
 
   /* row-first to conform to ppm specs. */
@@ -102,8 +102,7 @@ Pixel transfer(Complex c)
   px.g = 0;
   px.b = 0;
 
-  /*if (mandelbrot(c) <= 10) px.r = 100;*/
-  if (mandelbrot(c) >= 11) px.r = mandelbrot(c);
+  px.r = mandelbrot(c);
 
   return px;
 }
