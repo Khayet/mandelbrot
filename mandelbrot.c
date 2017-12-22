@@ -51,7 +51,7 @@ void display_help_msg()
 
 Args parse_args(int argc, char* argv[])
 {
-  Args args = { 900, 600, { -2, 1 }, { 1, -1 }, "image.ppm" };
+  Args args = { 1800, 1200, { -2, 1 }, { 1, -1 }, "image.ppm" };
 
   int i;
   for (i = 1; i < argc; ++i)
@@ -182,8 +182,8 @@ void write_ppm(Image img, char* dest)
 int mandel(Complex c, Complex z, int i)
 {
   /*
-   * Recursively returns number of iterations until the absolute value of z > 2 or
-   * we reach a recursion boundary.
+   * Recursively returns number of iterations until the absolute value of z > 
+   * THRESHOLD or we reach a recursion boundary.
    */
 
   if ((z.r*z.r + z.i*z.i) > THRESHOLD*THRESHOLD) return i;
@@ -211,6 +211,7 @@ void sample_plane(Samples smps, Complex first, Complex second)
    * Calculates for each samples the number of mandelbrot iterations. 
    */
 
+  /* TODO: optimizations: symmetry, omit center */
   float width = second.r - first.r;
   float height = first.i - second.i;
 
@@ -230,23 +231,22 @@ void sample_plane(Samples smps, Complex first, Complex second)
 }
 
 
-Pixel transfer(int iterations)
+Pixel confuse(int iterations)
 {
   /*
-   * Receives a number of and returns the
-   * appropriate Pixel.
+   * Produces a funky looking yellow-green visualization.
    */
 
   Pixel px;
-  px.r = iterations;
-  px.g = iterations;
-  px.b = iterations;
+  px.r = (int)(((float)iterations / (float)LIMIT) * 255);
+  px.g = (int)(((float)LIMIT / (float)iterations) * 255);
+  px.b = 0;
 
   return px;
 }
 
 
-void visualize(Image img, Samples smps)
+void visualize(Image img, Samples smps, Pixel (func)(int))
 {
   /*
    * Applies the transfer function for each sample in the given sample plane 
@@ -256,7 +256,7 @@ void visualize(Image img, Samples smps)
   int x, y;
   for (x = 0; x < img.w; ++x) {
     for (y = 0; y < img.h; ++y) {
-      img.pxs[x][y] = transfer(smps.data[x][y]);
+      img.pxs[x][y] = (func)(smps.data[x][y]);
     }
   } 
 }
@@ -274,7 +274,7 @@ int main(int argc, char* argv[])
 
   sample_plane(samples, c1, c2);
 
-  visualize(img, samples);
+  visualize(img, samples, confuse);
 
   write_ppm(img, args.filename);
 
