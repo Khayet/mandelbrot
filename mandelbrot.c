@@ -14,13 +14,19 @@ typedef struct Pixel
   unsigned char b;
 } Pixel;
 
-
 typedef struct Image
 {
   Pixel** pxs;
   int w;
   int h;
 } Image;
+
+typedef struct Samples
+{
+  int** data;
+  int w;
+  int h;
+} Samples;
 
 typedef struct Args
 {
@@ -31,6 +37,7 @@ typedef struct Args
   char* filename;
 } Args;
 
+
 void display_help_msg()
 {
   /* 
@@ -40,6 +47,7 @@ void display_help_msg()
    */
   printf("Sample usage: mandelbrot \n");
 }
+
 
 Args parse_args(int argc, char* argv[])
 {
@@ -93,8 +101,6 @@ Args parse_args(int argc, char* argv[])
 }
 
 
-
-
 Image create_image(int w, int h)
 {
   /* column-first -> our images are lists of columns */
@@ -125,6 +131,36 @@ void free_image_memory(Image img)
 }
 
 
+Samples create_samples(int w, int h)
+{
+  /* column-first -> our images are lists of columns */
+
+  Samples smps;
+  int** sampledata = malloc(w * sizeof(unsigned char*));
+
+  int i;
+  for (i = 0; i < w; ++i)
+  {
+    sampledata[i] = malloc(h * sizeof(int));
+  }
+
+  smps.data = sampledata;
+  smps.w = w;
+  smps.h = h;
+  return smps;
+}
+
+
+void free_samples(Samples smps)
+{
+  int i;
+  for (i = 0; i < smps.w; ++i) {
+    free(smps.data[i]);
+  }
+  free(smps.data);
+}
+
+
 void write_ppm(Image img, char* dest)
 {
   int x, y;
@@ -146,7 +182,7 @@ void write_ppm(Image img, char* dest)
 int mandel(Complex c, Complex z, int i)
 {
   /*
-   * Returns number of iterations until the absolute value of z > 2 or
+   * Recursively returns number of iterations until the absolute value of z > 2 or
    * we reach a recursion boundary.
    */
 
@@ -158,46 +194,34 @@ int mandel(Complex c, Complex z, int i)
 
 int mandelbrot(Complex c)
 {
+  /*
+   * Returns number of mandelbrot iterations for a point in the complex plane. 
+   */
+
   Complex zero = { 0, 0 };
   return mandel(c, zero, 0);
 }
 
 
-Pixel transfer(Complex c)
+void sample_plane(Samples smps, Complex first, Complex second)
 {
   /*
-   * Receives a complex number (location in complex plane) and returns the
-   * appropriate Pixel.
-   */
-
-  Pixel px;
-  int iterations = mandelbrot(c);
-  px.r = iterations;
-  px.g = iterations;
-  px.b = iterations;
-
-  return px;
-}
-
-
-void visualize_mandelbrot(Image img, Complex first, Complex second)
-{
-  /*
-   * Visualizes the detail of the complex plane inbetween the two given
-   * complex numbers. first: upper left corner, second: lower right corner.
+   * Samples the section of the complex plane specified by first (top left) 
+   * and second (bottom right), using the resolution of smps. 
+   * Calculates for each samples the number of mandelbrot iterations. 
    */
 
   float width = second.r - first.r;
   float height = first.i - second.i;
 
-  float sample_size_r = width / (float)img.w;
-  float sample_size_i = height / (float)img.h;
+  float sample_size_r = width / (float)smps.w;
+  float sample_size_i = height / (float)smps.h;  
 
   int x, y;
   Complex sample = first;
-  for (x = 0; x < img.w; ++x) {
-    for (y = 0; y < img.h; ++y) {
-      img.pxs[x][y] = transfer(sample);
+  for (x = 0; x < smps.w; ++x) {
+    for (y = 0; y < smps.h; ++y) {
+      smps.data[x][y] = mandelbrot(sample);
       sample.i -= sample_size_i;
     }
     sample.i = first.i;
@@ -206,20 +230,57 @@ void visualize_mandelbrot(Image img, Complex first, Complex second)
 }
 
 
+Pixel transfer(int iterations)
+{
+  /*
+   * Receives a number of and returns the
+   * appropriate Pixel.
+   */
+
+  Pixel px;
+  px.r = iterations;
+  px.g = iterations;
+  px.b = iterations;
+
+  return px;
+}
+
+
+void visualize(Image img, Samples smps)
+{
+  /*
+   * Applies the transfer function for each sample in the given sample plane 
+   * and writes all pixel values into img.
+   */
+
+  int x, y;
+  for (x = 0; x < img.w; ++x) {
+    for (y = 0; y < img.h; ++y) {
+      img.pxs[x][y] = transfer(smps.data[x][y]);
+    }
+  } 
+}
+
+
 int main(int argc, char* argv[])
 {
   Args args = parse_args(argc, argv);
 
+  Samples samples = create_samples(args.width, args.height);
   Image img = create_image(args.width, args.height);
+
   Complex c1 = args.top_left;
   Complex c2 = args.bottom_right;
 
-  /* TODO: separate calculation of iterations and visualization */
-  visualize_mandelbrot(img, c1, c2);
+  sample_plane(samples, c1, c2);
+
+  visualize(img, samples);
 
   write_ppm(img, args.filename);
 
+  free_samples(samples);
   free_image_memory(img);
+
   printf("Done!\n");
   return 0;
 }
