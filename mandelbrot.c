@@ -1,5 +1,6 @@
 #include <stdio.h> /* FILE, printf, fprintf, fwrite, fclose */
 #include <stdlib.h> /* malloc, free */
+#include <string.h> /* strcmp */
 
 #include "complex.h" /* Complex, addx, multx, absx */
 
@@ -20,6 +21,55 @@ typedef struct Image
   int w;
   int h;
 } Image;
+
+typedef struct Args
+{
+  int width;
+  int height;
+  Complex top_left;
+  Complex bottom_right;
+  char* filename;
+} Args;
+
+void display_help_msg()
+{
+  /* 
+   * TODO: write help message including general usage, sample usage and 
+   * available options
+   */
+  printf("Sample usage: mandelbrot \n");
+}
+
+Args parse_args(int argc, char* argv[])
+{
+  /* TODO: finish argument parsing */
+  Args args = { 900, 600, { -2, 1 }, { 1, -1 }, "image.ppm" };
+
+  int i;
+  for (i = 1; i < argc; ++i)
+  {
+    if (0 == strcmp(argv[i], "--help") || 0 == strcmp(argv[i], "-h")) {
+      display_help_msg();
+      exit(0);
+    }
+
+    if (0 == strcmp(argv[i], "--resolution") || 0 == strcmp(argv[i], "-r")) {
+      if (argc < i+2) {
+        printf("ERROR: resolution option requires width and height.\n");
+        printf("Sample Usage: mandelbrot --resolution 900 600\n");
+        exit(0);
+      }
+      /* parse resolution */
+    }
+    /* if --resolution or -r, parse resolution */
+    /* if --section or -s, parse section */
+    /* if --filename or -f, parse filename */
+  }
+
+  return args;
+}
+
+
 
 
 Image create_image(int w, int h)
@@ -133,16 +183,18 @@ void visualize_mandelbrot(Image img, Complex first, Complex second)
 }
 
 
-int main()
+int main(int argc, char* argv[])
 {
-  Image img = create_image(1800, 1200);
-  Complex c1 = { -2, 1 };
-  Complex c2 = { 1, -1 };
+  Args args = parse_args(argc, argv);
+
+  Image img = create_image(args.width, args.height);
+  Complex c1 = args.top_left;
+  Complex c2 = args.bottom_right;
 
   /* TODO: separate calculation of iterations and visualization */
   visualize_mandelbrot(img, c1, c2);
 
-  write_ppm(img, "image.ppm");
+  write_ppm(img, args.filename);
 
   free_image_memory(img);
   printf("Done!\n");
