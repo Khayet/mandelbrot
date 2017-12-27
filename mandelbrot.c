@@ -4,8 +4,9 @@
 
 #include "complex.h" /* Complex, addx, multx, absx */
 
-#define LIMIT 500
 #define THRESHOLD 2
+
+int maxiterations = 500;
 
 typedef struct Pixel
 {
@@ -34,6 +35,7 @@ typedef struct Args
   int height;
   Complex top_left;
   Complex bottom_right;
+  int maxiterations;
   char* filename;
 } Args;
 
@@ -51,7 +53,7 @@ void display_help_msg()
 
 Args parse_args(int argc, char* argv[])
 {
-  Args args = { 1800, 1200, { -2, 1 }, { 1, -1 }, "image.ppm" };
+  Args args = { 1800, 1200, { -2, 1 }, { 1, -1 }, 500, "image.ppm" };
 
   int i;
   for (i = 1; i < argc; ++i)
@@ -86,6 +88,16 @@ Args parse_args(int argc, char* argv[])
       args.bottom_right.r = atof(argv[i+3]);
       args.bottom_right.i = atof(argv[i+4]);
     }
+
+    /* if --maxiterations or -m, parse maxiterations */
+    if (0 == strcmp(argv[i], "--maxiterations") || 0 == strcmp(argv[i], "-m")) {
+      if (i+1 > argc) {
+        printf("ERROR: --maxiterations option but no number of iterations specified.\n");
+        printf("Sample usage: ./mandelbrot --maxiterations 800\n"); 
+      }
+      args.maxiterations = atoi(argv[i+1]);
+    }
+
 
     if (0 == strcmp(argv[i], "--filename") || 0 == strcmp(argv[i], "-f")) {
       if (i+1 > argc) {
@@ -187,7 +199,7 @@ int mandel(Complex c, Complex z, int i)
    */
 
   if ((z.r*z.r + z.i*z.i) > THRESHOLD*THRESHOLD) return i;
-  if (i >= LIMIT) return i;
+  if (i >= maxiterations) return i;
   return mandel(c, addx(multx(z,z), c), ++i);
 }
 
@@ -238,10 +250,32 @@ Pixel confuse(int iterations)
    */
 
   Pixel px;
-  px.r = (int)(((float)iterations / (float)LIMIT) * 255);
-  px.g = (int)(((float)LIMIT / (float)iterations) * 255);
+  px.r = (int)(((float)iterations / (float)maxiterations) * 255);
+  px.g = (int)(((float)maxiterations / (float)iterations) * 255);
   px.b = 0;
 
+  return px;
+}
+
+Pixel binary(int iterations)
+{
+  /*
+   * A simple black-and-white transfer function.
+   */
+
+  Pixel px;
+  
+  if (iterations == maxiterations) {
+    px.r = 255;
+    px.g = 255;
+    px.b = 255;
+  }
+  else {
+    px.r = 0;
+    px.g = 0;
+    px.b = 0;
+  }
+  
   return px;
 }
 
@@ -249,8 +283,8 @@ Pixel confuse(int iterations)
 void visualize(Image img, Samples smps, Pixel (func)(int))
 {
   /*
-   * Applies the transfer function for each sample in the given sample plane 
-   * and writes all pixel values into img.
+   * Applies the transfer function (given by function pointer) for each sample 
+   * in the given sample plane and writes all pixel values into img.
    */
 
   int x, y;
