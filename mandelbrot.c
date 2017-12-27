@@ -223,7 +223,6 @@ void sample_plane(Samples smps, Complex first, Complex second)
    * Calculates for each sample the number of mandelbrot iterations. 
    */
 
-  /* TODO: super-sampling */
   /* TODO: optimizations: symmetry, omit center */
   float width = second.r - first.r;
   float height = first.i - second.i;
@@ -231,12 +230,29 @@ void sample_plane(Samples smps, Complex first, Complex second)
   float sample_dist_r = width / (float)smps.w;
   float sample_dist_i = height / (float)smps.h;  
 
+  /* TODO: super-sampling is in conflict with integer number of iterations
+   * --> normalizing 0 to 1 ?
+   */
+
+  int s1, s2, s3, s4;
   int x, y;
   Complex sample = first;
   for (x = 0; x < smps.w; ++x) {
     for (y = 0; y < smps.h; ++y) {
-      smps.data[x][y] = mandelbrot(sample);
-      sample.i -= sample_dist_i;
+      s1 = mandelbrot(sample);
+      sample.r += sample_dist_r / 2.0;
+      s2 = mandelbrot(sample);
+      sample.i -= sample_dist_i / 2.0;
+      s3 = mandelbrot(sample);
+      sample.r -= sample_dist_r / 2.0;
+      s4 = mandelbrot(sample);
+
+      smps.data[x][y] = (s1+s2+s3+s4) / 4;
+
+      sample.i -= sample_dist_i / 2.0;
+
+/*      smps.data[x][y] = mandelbrot(sample);
+      sample.i -= sample_dist_i;*/
     }
     sample.i = first.i;
     sample.r += sample_dist_r;
@@ -259,10 +275,11 @@ Pixel confuse(int iterations)
 }
 
 
-Pixel binary(int iterations)
+Pixel maximum(int iterations)
 {
   /*
-   * A simple black-and-white transfer function.
+   * Shows samples with a maximum of iterations as white, others black.
+   * That is, this shows mandelbrot-membership.
    */
 
   Pixel px;
@@ -277,6 +294,45 @@ Pixel binary(int iterations)
     px.g = 0;
     px.b = 0;
   }
+  
+  return px;
+}
+
+
+Pixel minimum(int iterations)
+{
+  /*
+   * Shows samples with > 0 iterations as white, others black.
+   */
+
+  Pixel px;
+  
+  if (iterations > 0) {
+    px.r = 255;
+    px.g = 255;
+    px.b = 255;
+  }
+  else {
+    px.r = 0;
+    px.g = 0;
+    px.b = 0;
+  }
+  
+  return px;
+}
+
+
+Pixel linear(int iterations)
+{
+  /*
+   * Simply interpolates linearly between 0 and maxiterations.
+   */
+
+  Pixel px;
+  
+  px.r = (int)(((float)iterations / (float)maxiterations) * 255);
+  px.g = (int)(((float)iterations / (float)maxiterations) * 255);
+  px.b = (int)(((float)iterations / (float)maxiterations) * 255);
   
   return px;
 }
@@ -310,7 +366,7 @@ int main(int argc, char* argv[])
 
   sample_plane(samples, c1, c2);
 
-  visualize(img, samples, confuse);
+  visualize(img, samples, minimum);
 
   write_ppm(img, args.filename);
 
