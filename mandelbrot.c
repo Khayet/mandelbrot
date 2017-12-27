@@ -220,29 +220,30 @@ void sample_plane(Samples smps, Complex first, Complex second)
   /*
    * Samples the section of the complex plane specified by first (top left) 
    * and second (bottom right), using the resolution of smps. 
-   * Calculates for each samples the number of mandelbrot iterations. 
+   * Calculates for each sample the number of mandelbrot iterations. 
    */
 
+  /* TODO: super-sampling */
   /* TODO: optimizations: symmetry, omit center */
   float width = second.r - first.r;
   float height = first.i - second.i;
 
-  float sample_size_r = width / (float)smps.w;
-  float sample_size_i = height / (float)smps.h;  
+  float sample_dist_r = width / (float)smps.w;
+  float sample_dist_i = height / (float)smps.h;  
 
   int x, y;
   Complex sample = first;
   for (x = 0; x < smps.w; ++x) {
     for (y = 0; y < smps.h; ++y) {
       smps.data[x][y] = mandelbrot(sample);
-      sample.i -= sample_size_i;
+      sample.i -= sample_dist_i;
     }
     sample.i = first.i;
-    sample.r += sample_size_r;
+    sample.r += sample_dist_r;
   }
 }
 
-
+/* TODO: write more transfer functions and move them to their own file. */
 Pixel confuse(int iterations)
 {
   /*
@@ -256,6 +257,7 @@ Pixel confuse(int iterations)
 
   return px;
 }
+
 
 Pixel binary(int iterations)
 {
