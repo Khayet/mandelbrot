@@ -1,8 +1,6 @@
 #ifndef COMPLEX_H
 #define COMPLEX_H
 
-#include <math.h> /* sqrt */
-
 typedef struct Complex
 {
   float r;
