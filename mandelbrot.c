@@ -48,7 +48,7 @@ void display_help_msg()
 
 Args parse_args(int argc, char* argv[])
 {
-  Args args = { 1800, 1200, { -2, 1 }, { 1, -1 }, 500, "image.ppm" };
+  Args args = { 900, 600, { -2, 1 }, { 1, -1 }, 500, "image.ppm" };
 
   int i;
   for (i = 1; i < argc; ++i)
@@ -108,7 +108,7 @@ Args parse_args(int argc, char* argv[])
 }
 
 
-Image create_image(int w, int h)
+Image allocate_image_memory(int w, int h)
 {
   /* column-first -> our images are lists of columns */
 
@@ -138,7 +138,7 @@ void free_image_memory(Image img)
 }
 
 
-Samples create_samples(int w, int h)
+Samples allocate_samples_memory(int w, int h)
 {
   /* column-first -> our images are lists of columns */
 
@@ -158,7 +158,7 @@ Samples create_samples(int w, int h)
 }
 
 
-void free_samples(Samples smps)
+void free_samples_memory(Samples smps)
 {
   int i;
   for (i = 0; i < smps.w; ++i) {
@@ -275,19 +275,19 @@ int main(int argc, char* argv[])
 {
   Args args = parse_args(argc, argv);
 
-  Samples samples = create_samples(args.width, args.height);
-  Image img = create_image(args.width, args.height);
+  Samples samples = allocate_samples_memory(args.width, args.height);
+  Image img = allocate_image_memory(args.width, args.height);
 
   Complex c1 = args.top_left;
   Complex c2 = args.bottom_right;
 
   sample_plane(samples, c1, c2);
 
-  visualize(img, samples, minimum);
+  visualize(img, samples, tr_confuse);
 
   write_ppm(img, args.filename);
 
-  free_samples(samples);
+  free_samples_memory(samples);
   free_image_memory(img);
 
   printf("Done!\n");
