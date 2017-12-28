@@ -3,17 +3,12 @@
 #include <string.h> /* strcmp */
 
 #include "complex.h" /* Complex, addx, multx, absx */
+#include "pixel.h" /* Pixel */
+#include "transfers.h" /* transfer functions */
 
 #define THRESHOLD 2
 
 int maxiterations = 500;
-
-typedef struct Pixel
-{
-  unsigned char r;
-  unsigned char g;
-  unsigned char b;
-} Pixel;
 
 typedef struct Image
 {
@@ -259,86 +254,8 @@ void sample_plane(Samples smps, Complex first, Complex second)
   }
 }
 
-/* TODO: write more transfer functions and move them to their own file. */
-Pixel confuse(int iterations)
-{
-  /*
-   * Produces a funky looking yellow-green visualization.
-   */
 
-  Pixel px;
-  px.r = (int)(((float)iterations / (float)maxiterations) * 255);
-  px.g = (int)(((float)maxiterations / (float)iterations) * 255);
-  px.b = 0;
-
-  return px;
-}
-
-
-Pixel maximum(int iterations)
-{
-  /*
-   * Shows samples with a maximum of iterations as white, others black.
-   * That is, this shows mandelbrot-membership.
-   */
-
-  Pixel px;
-  
-  if (iterations == maxiterations) {
-    px.r = 255;
-    px.g = 255;
-    px.b = 255;
-  }
-  else {
-    px.r = 0;
-    px.g = 0;
-    px.b = 0;
-  }
-  
-  return px;
-}
-
-
-Pixel minimum(int iterations)
-{
-  /*
-   * Shows samples with > 0 iterations as white, others black.
-   */
-
-  Pixel px;
-  
-  if (iterations > 0) {
-    px.r = 255;
-    px.g = 255;
-    px.b = 255;
-  }
-  else {
-    px.r = 0;
-    px.g = 0;
-    px.b = 0;
-  }
-  
-  return px;
-}
-
-
-Pixel linear(int iterations)
-{
-  /*
-   * Simply interpolates linearly between 0 and maxiterations.
-   */
-
-  Pixel px;
-  
-  px.r = (int)(((float)iterations / (float)maxiterations) * 255);
-  px.g = (int)(((float)iterations / (float)maxiterations) * 255);
-  px.b = (int)(((float)iterations / (float)maxiterations) * 255);
-  
-  return px;
-}
-
-
-void visualize(Image img, Samples smps, Pixel (func)(int))
+void visualize(Image img, Samples smps, Pixel (func)(int, int))
 {
   /*
    * Applies the transfer function (given by function pointer) for each sample 
@@ -348,7 +265,7 @@ void visualize(Image img, Samples smps, Pixel (func)(int))
   int x, y;
   for (x = 0; x < img.w; ++x) {
     for (y = 0; y < img.h; ++y) {
-      img.pxs[x][y] = (func)(smps.data[x][y]);
+      img.pxs[x][y] = (func)(smps.data[x][y], maxiterations);
     }
   } 
 }
