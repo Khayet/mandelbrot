@@ -1,6 +1,6 @@
 #include "transfers.h"
 
-Pixel confuse(int iterations, int maxiterations)
+Pixel tr_confuse(int iterations, int maxiterations)
 {
   /*
    * Produces a funky looking yellow-green visualization.
@@ -15,7 +15,7 @@ Pixel confuse(int iterations, int maxiterations)
 }
 
 
-Pixel maximum(int iterations, int maxiterations)
+Pixel tr_maximum(int iterations, int maxiterations)
 {
   /*
    * Shows samples with a maximum of iterations as white, others black.
@@ -39,7 +39,7 @@ Pixel maximum(int iterations, int maxiterations)
 }
 
 
-Pixel minimum(int iterations, int maxiterations)
+Pixel tr_minimum(int iterations, int maxiterations)
 {
   /*
    * Shows samples with > 0 iterations as white, others black.
@@ -63,7 +63,7 @@ Pixel minimum(int iterations, int maxiterations)
 }
 
 
-Pixel linear(int iterations, int maxiterations)
+Pixel tr_linear(int iterations, int maxiterations)
 {
   /*
    * Simply interpolates linearly between 0 and maxiterations.
