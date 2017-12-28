@@ -19,7 +19,7 @@ typedef struct Image
 
 typedef struct Samples
 {
-  int** data;
+  float** data; /* float instead of int due to averaging (super-sampling) */
   int w;
   int h;
 } Samples;
@@ -143,12 +143,12 @@ Samples allocate_samples_memory(int w, int h)
   /* column-first -> our images are lists of columns */
 
   Samples smps;
-  int** sampledata = malloc(w * sizeof(unsigned char*));
+  float** sampledata = malloc(w * sizeof(unsigned char*));
 
   int i;
   for (i = 0; i < w; ++i)
   {
-    sampledata[i] = malloc(h * sizeof(int));
+    sampledata[i] = malloc(h * sizeof(float));
   }
 
   smps.data = sampledata;
@@ -215,7 +215,8 @@ void sample_plane(Samples smps, Complex first, Complex second)
   /*
    * Samples the section of the complex plane specified by first (top left) 
    * and second (bottom right), using the resolution of smps. 
-   * Calculates for each sample the number of mandelbrot iterations. 
+   * Calculates for each sample the number of mandelbrot iterations.
+   * Performs simple 4x super-sampling (4 samples per pixel).
    */
 
   /* TODO: optimizations: symmetry, omit center */
@@ -225,29 +226,26 @@ void sample_plane(Samples smps, Complex first, Complex second)
   float sample_dist_r = width / (float)smps.w;
   float sample_dist_i = height / (float)smps.h;  
 
-  /* TODO: super-sampling is in conflict with integer number of iterations
-   * --> normalizing 0 to 1 ?
-   */
-
-  int s1, s2, s3, s4;
   int x, y;
+  int tmp_s;
   Complex sample = first;
   for (x = 0; x < smps.w; ++x) {
     for (y = 0; y < smps.h; ++y) {
-      s1 = mandelbrot(sample);
+
+      tmp_s = mandelbrot(sample);
+
       sample.r += sample_dist_r / 2.0;
-      s2 = mandelbrot(sample);
-      sample.i -= sample_dist_i / 2.0;
-      s3 = mandelbrot(sample);
-      sample.r -= sample_dist_r / 2.0;
-      s4 = mandelbrot(sample);
-
-      smps.data[x][y] = (s1+s2+s3+s4) / 4;
+      tmp_s += mandelbrot(sample);
 
       sample.i -= sample_dist_i / 2.0;
+      tmp_s += mandelbrot(sample);
 
-/*      smps.data[x][y] = mandelbrot(sample);
-      sample.i -= sample_dist_i;*/
+      sample.r -= sample_dist_r / 2.0;      
+      tmp_s += mandelbrot(sample);
+
+      smps.data[x][y] = (float)tmp_s / 4;
+
+      sample.i -= sample_dist_i / 2.0;
     }
     sample.i = first.i;
     sample.r += sample_dist_r;
@@ -255,17 +253,17 @@ void sample_plane(Samples smps, Complex first, Complex second)
 }
 
 
-void visualize(Image img, Samples smps, Pixel (func)(int, int))
+void visualize(Image img, Samples smps, Pixel (transfer_func)(int, int))
 {
   /*
-   * Applies the transfer function (given by function pointer) for each sample 
-   * in the given sample plane and writes all pixel values into img.
+   * Applies the callback transfer function for each sample in the sample plane
+   * and writes the resulting pixel values into img.
    */
 
   int x, y;
   for (x = 0; x < img.w; ++x) {
     for (y = 0; y < img.h; ++y) {
-      img.pxs[x][y] = (func)(smps.data[x][y], maxiterations);
+      img.pxs[x][y] = (transfer_func)(smps.data[x][y], maxiterations);
     }
   } 
 }
@@ -283,7 +281,7 @@ int main(int argc, char* argv[])
 
   sample_plane(samples, c1, c2);
 
-  visualize(img, samples, tr_confuse);
+  visualize(img, samples, tr_linear);
 
   write_ppm(img, args.filename);
 
