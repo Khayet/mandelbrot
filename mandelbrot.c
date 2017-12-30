@@ -1,6 +1,7 @@
 #include <stdio.h> /* FILE, printf, fprintf, fwrite, fclose */
 #include <stdlib.h> /* malloc, free */
 #include <string.h> /* strcmp */
+#include <math.h> /* fabs */
 
 #include "complex.h" /* Complex, addx, multx, absx */
 #include "color.h" /* Color */
@@ -70,9 +71,6 @@ Args parse_args(int argc, char* argv[])
 
     /* if --section or -s, parse section */
     if (0 == strcmp(argv[i], "--section") || 0 == strcmp(argv[i], "-s")) {
-      printf("%s\n", "ERROR: section specification temporarily disabled because I'm working on optimization.");
-      exit(1);
-
       if (i+4 > argc) {
         printf("ERROR: --section option requires 4 numbers (floats):\n");
         printf("top_left.r top_left.i bottom_right.r bottom_right.i\n");
@@ -242,14 +240,15 @@ void sample_plane_section(Samples smps, int x1, int y1, int x2, int y2,
   }
 }
 
-void write_single_value_to_samples(Samples smps, int x1, int y1, int x2, int y2, int val)
+
+void mirror_samples(Samples smps, int mirror_y)
 {
   int x, y;
-  for (x = x1; x < x2; ++x) {
-    for (y = y1; y < y2; ++y) {
-      smps.data[x][y] = val;
+  for (x = 0; x < smps.w; ++x) {
+    for (y = mirror_y+1; y < smps.h && y < (mirror_y*2); ++y) {
+      smps.data[x][y] = smps.data[x][(mirror_y*2) - y];
     }
-  }
+  }  
 }
 
 
@@ -263,19 +262,37 @@ void sample_plane(Samples smps, Complex first, Complex second)
    * Performs simple 4x super-sampling (4 samples per pixel).
    */
 
-  /* TODO: optimizations: symmetry, omit center */
-
+  /* TODO: optimizations: omit center */
+  /* TODO: clean code */
 
   float width = second.r - first.r;
   float sample_dist = width / (float)(smps.w);
 
   /* First optimization: symmetry along x-axis */
-  sample_plane_section(smps, 0, 0, smps.w, smps.h / 2 + 1, first, sample_dist);
-  int x, y;
-  for (x = 0; x < smps.w; ++x) {
-    for (y = smps.h / 2; y < smps.h; ++y) {
-      smps.data[x][y] = smps.data[x][smps.h - y];
+  /* mirror axis in image (x,y) coordinates */
+  int mirror_y = (int)((first.i * (1.0 / sample_dist)) + 0.5);
+  
+  Complex third;
+  third.r = first.r;
+  third.i = -first.i;
+
+  if (first.i > 0 && second.i < 0) { /* section crosses x-axis */
+    if (fabs(first.i) >= fabs(second.i)) {
+      /* section above x-axis is larger than section below x-axis */
+      sample_plane_section(smps, 0, 0, smps.w, mirror_y+1, first, sample_dist);
+      mirror_samples(smps, mirror_y);
     }
+    else {
+      /* section above x-axis is smaller than section below x-axis */
+      /* TODO: mirror in reverse */
+      sample_plane_section(smps, 0, 0, smps.w, mirror_y+1, first, sample_dist);
+      mirror_samples(smps, mirror_y);
+      sample_plane_section(smps, 0, mirror_y*2, smps.w, smps.h, 
+                           third, sample_dist);
+    }
+  }
+  else { /* section does not cross x-axis */
+    sample_plane_section(smps, 0, 0, smps.w, smps.h, first, sample_dist);
   }
 }
 
@@ -310,7 +327,7 @@ int main(int argc, char* argv[])
 
   sample_plane(samples, c1, c2);
 
-  visualize(img, samples, tr_linear);
+  visualize(img, samples, tr_confuse);
 
   write_ppm(img, args.filename);
 
