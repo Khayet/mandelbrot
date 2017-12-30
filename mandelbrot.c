@@ -269,6 +269,7 @@ void sample_plane(Samples smps, Complex first, Complex second)
   float width = second.r - first.r;
   float sample_dist = width / (float)(smps.w);
 
+  /* First optimization: symmetry along x-axis */
   sample_plane_section(smps, 0, 0, smps.w, smps.h / 2 + 1, first, sample_dist);
   int x, y;
   for (x = 0; x < smps.w; ++x) {
