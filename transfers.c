@@ -1,79 +1,79 @@
 #include "transfers.h"
 
-Pixel tr_confuse(int iterations, int maxiterations)
+Color tr_confuse(int iterations, int maxiterations)
 {
   /*
    * Produces a funky looking yellow-green visualization.
    */
 
-  Pixel px;
-  px.r = (int)(((float)iterations / (float)maxiterations) * 255);
-  px.g = (int)(((float)maxiterations / (float)iterations) * 255);
-  px.b = 0;
+  Color c;
+  c.r = (int)(((float)iterations / (float)maxiterations) * 255);
+  c.g = (int)(((float)maxiterations / (float)iterations) * 255);
+  c.b = 0;
 
-  return px;
+  return c;
 }
 
 
-Pixel tr_maximum(int iterations, int maxiterations)
+Color tr_maximum(int iterations, int maxiterations)
 {
   /*
    * Shows samples with a maximum of iterations as white, others black.
    * That is, this shows mandelbrot-membership.
    */
 
-  Pixel px;
+  Color c;
   
   if (iterations == maxiterations) {
-    px.r = 255;
-    px.g = 255;
-    px.b = 255;
+    c.r = 255;
+    c.g = 255;
+    c.b = 255;
   }
   else {
-    px.r = 0;
-    px.g = 0;
-    px.b = 0;
+    c.r = 0;
+    c.g = 0;
+    c.b = 0;
   }
   
-  return px;
+  return c;
 }
 
 
-Pixel tr_minimum(int iterations, int maxiterations)
+Color tr_minimum(int iterations, int maxiterations)
 {
   /*
    * Shows samples with > 0 iterations as white, others black.
    */
 
-  Pixel px;
+  Color c;
   (void)maxiterations;
 
   if (iterations > 0) {
-    px.r = 255;
-    px.g = 255;
-    px.b = 255;
+    c.r = 255;
+    c.g = 255;
+    c.b = 255;
   }
   else {
-    px.r = 0;
-    px.g = 0;
-    px.b = 0;
+    c.r = 0;
+    c.g = 0;
+    c.b = 0;
   }
   
-  return px;
+  return c;
 }
 
 
-Pixel tr_linear(int iterations, int maxiterations)
+Color tr_linear(int iterations, int maxiterations)
 {
   /*
    * Simply interpolates linearly between 0 and maxiterations.
    */
 
-  Pixel px;
+  Color c;
   
-  px.r = (int)(((float)iterations / (float)maxiterations) * 255);
-  px.g = (int)(((float)iterations / (float)maxiterations) * 255);
-  px.b = (int)(((float)iterations / (float)maxiterations) * 255);
+  c.r = (int)(((float)iterations / (float)maxiterations) * 255);
+  c.g = (int)(((float)iterations / (float)maxiterations) * 255);
+  c.b = (int)(((float)iterations / (float)maxiterations) * 255);
   
-  return px;
+  return c;
 }

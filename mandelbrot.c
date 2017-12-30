@@ -3,7 +3,7 @@
 #include <string.h> /* strcmp */
 
 #include "complex.h" /* Complex, addx, multx, absx */
-#include "pixel.h" /* Pixel */
+#include "color.h" /* Color */
 #include "transfers.h" /* transfer functions */
 
 #define THRESHOLD 2
@@ -12,7 +12,7 @@ int maxiterations = 500;
 
 typedef struct Image
 {
-  Pixel** pxs;
+  Color** data;
   int w;
   int h;
 } Image;
@@ -113,14 +113,14 @@ Image allocate_image_memory(int w, int h)
   /* column-first -> our images are lists of columns */
 
   Image img;
-  Pixel** pxdata = malloc(w * sizeof(unsigned char*));
+  Color** cldata = malloc(w * sizeof(unsigned char*));
 
   int i;
   for (i = 0; i < w; ++i) {
-    pxdata[i] = malloc(h * sizeof(Pixel));
+    cldata[i] = malloc(h * sizeof(Color));
   }
 
-  img.pxs = pxdata;
+  img.data = cldata;
   img.w = w;
   img.h = h;
 
@@ -132,9 +132,9 @@ void free_image_memory(Image img)
 {
   int i;
   for (i = 0; i < img.w; ++i) {
-    free(img.pxs[i]);
+    free(img.data[i]);
   }
-  free(img.pxs);
+  free(img.data);
 }
 
 
@@ -178,7 +178,7 @@ void write_ppm(Image img, char* dest)
   /* row-first to conform to ppm specs. */
   for (y = 0; y < img.h; ++y) {
     for (x = 0; x < img.w; ++x) {
-      fwrite(&img.pxs[x][y], sizeof(Pixel), 1, f);
+      fwrite(&img.data[x][y], sizeof(Color), 1, f);
     }
   }
 
@@ -214,8 +214,9 @@ void sample_plane(Samples smps, Complex first, Complex second)
 {
   /*
    * Samples the section of the complex plane specified by first (top left) 
-   * and second (bottom right), using the resolution of smps. 
-   * Calculates for each sample the number of mandelbrot iterations.
+   * and second (bottom right), using the resolution of smps and 
+   * calculates for each sample the number of mandelbrot iterations.
+   * 
    * Performs simple 4x super-sampling (4 samples per pixel).
    */
 
@@ -253,17 +254,17 @@ void sample_plane(Samples smps, Complex first, Complex second)
 }
 
 
-void visualize(Image img, Samples smps, Pixel (transfer_func)(int, int))
+void visualize(Image img, Samples smps, Color (transfer_func)(int, int))
 {
   /*
    * Applies the callback transfer function for each sample in the sample plane
-   * and writes the resulting pixel values into img.
+   * and writes the resulting color values into img.
    */
 
   int x, y;
   for (x = 0; x < img.w; ++x) {
     for (y = 0; y < img.h; ++y) {
-      img.pxs[x][y] = (transfer_func)(smps.data[x][y], maxiterations);
+      img.data[x][y] = (transfer_func)(smps.data[x][y], maxiterations);
     }
   } 
 }

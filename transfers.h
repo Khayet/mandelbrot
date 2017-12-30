@@ -1,11 +1,11 @@
 #ifndef TRANSFERS_H
 #define TRANSFERS_H
 
-#include "pixel.h" /* Pixel */
+#include "color.h" /* Color */
 
-Pixel tr_confuse(int, int);
-Pixel tr_maximum(int, int);
-Pixel tr_minimum(int, int);
-Pixel tr_linear(int, int);
+Color tr_confuse(int, int);
+Color tr_maximum(int, int);
+Color tr_minimum(int, int);
+Color tr_linear(int, int);
 
 #endif /* TRANSFERS_H */
