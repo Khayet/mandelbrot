@@ -70,6 +70,9 @@ Args parse_args(int argc, char* argv[])
 
     /* if --section or -s, parse section */
     if (0 == strcmp(argv[i], "--section") || 0 == strcmp(argv[i], "-s")) {
+      printf("%s\n", "ERROR: section specification temporarily disabled because I'm working on optimization.");
+      exit(1);
+
       if (i+4 > argc) {
         printf("ERROR: --section option requires 4 numbers (floats):\n");
         printf("top_left.r top_left.i bottom_right.r bottom_right.i\n");
@@ -210,6 +213,46 @@ int mandelbrot(Complex c)
 }
 
 
+void sample_plane_section(Samples smps, int x1, int y1, int x2, int y2, 
+                          Complex first, float sample_dist)
+{
+  int x, y;
+  int tmp_s;
+  Complex sample = first;
+  for (x = x1; x < x2; ++x) {
+    for (y = y1; y < y2; ++y) {
+
+      tmp_s = mandelbrot(sample);
+
+      sample.r += sample_dist / 2.0;
+      tmp_s += mandelbrot(sample);
+
+      sample.i -= sample_dist / 2.0;
+      tmp_s += mandelbrot(sample);
+
+      sample.r -= sample_dist / 2.0;      
+      tmp_s += mandelbrot(sample);
+
+      smps.data[x][y] = (float)tmp_s / 4;
+
+      sample.i -= sample_dist / 2.0;
+    }
+    sample.i = first.i;
+    sample.r += sample_dist;
+  }
+}
+
+void write_single_value_to_samples(Samples smps, int x1, int y1, int x2, int y2, int val)
+{
+  int x, y;
+  for (x = x1; x < x2; ++x) {
+    for (y = y1; y < y2; ++y) {
+      smps.data[x][y] = val;
+    }
+  }
+}
+
+
 void sample_plane(Samples smps, Complex first, Complex second)
 {
   /*
@@ -221,37 +264,21 @@ void sample_plane(Samples smps, Complex first, Complex second)
    */
 
   /* TODO: optimizations: symmetry, omit center */
+
+
   float width = second.r - first.r;
-  float height = first.i - second.i;
+  float sample_dist = width / (float)(smps.w);
 
-  float sample_dist_r = width / (float)smps.w;
-  float sample_dist_i = height / (float)smps.h;  
-
+  sample_plane_section(smps, 0, 0, smps.w, smps.h / 2 + 1, first, sample_dist);
   int x, y;
-  int tmp_s;
-  Complex sample = first;
   for (x = 0; x < smps.w; ++x) {
-    for (y = 0; y < smps.h; ++y) {
-
-      tmp_s = mandelbrot(sample);
-
-      sample.r += sample_dist_r / 2.0;
-      tmp_s += mandelbrot(sample);
-
-      sample.i -= sample_dist_i / 2.0;
-      tmp_s += mandelbrot(sample);
-
-      sample.r -= sample_dist_r / 2.0;      
-      tmp_s += mandelbrot(sample);
-
-      smps.data[x][y] = (float)tmp_s / 4;
-
-      sample.i -= sample_dist_i / 2.0;
+    for (y = smps.h / 2; y < smps.h; ++y) {
+      smps.data[x][y] = smps.data[x][smps.h - y];
     }
-    sample.i = first.i;
-    sample.r += sample_dist_r;
   }
 }
+
+
 
 
 void visualize(Image img, Samples smps, Color (transfer_func)(int, int))
