@@ -130,11 +130,18 @@ int mandelbrot(Complex c)
 
 
 void sample_plane_section(Samples smps, int x1, int y1, int x2, int y2, 
-                          Complex first, float sample_dist)
+                          Complex start, float sample_dist)
 {
+  /*
+   * Samples a section of the complex plane, starting from the complex point
+   * 'start' and (x1,y1) in xy-coordinates and ending at (x2,y2).
+   * 
+   * Performs simple 4x super-sampling with equal spacing.
+   */
+
   int x, y;
   int tmp_s;
-  Complex sample = first;
+  Complex sample = start;
   for (x = x1; x < x2; ++x) {
     for (y = y1; y < y2; ++y) {
 
@@ -153,7 +160,7 @@ void sample_plane_section(Samples smps, int x1, int y1, int x2, int y2,
 
       sample.i -= sample_dist / 2.0;
     }
-    sample.i = first.i;
+    sample.i = start.i;
     sample.r += sample_dist;
   }
 }
@@ -172,28 +179,20 @@ void mirror_samples(Samples smps, int mirror_y, int start_y, int end_y,
 
   if (start_y > smps.h) {
     printf("%s\n", 
-           "ERROR: mirror_samples(): start point below sample height.");
+           "ERROR: mirror_samples(): start point below samples height.");
   }
   if (end_y > smps.h) {
     printf("%s\n", 
-           "ERROR: mirror_samples(): end point below sample height.");
+           "ERROR: mirror_samples(): end point below samples height.");
   }
 
-  for (x = 0; x < smps.w; x+=step) {
-    for (y = start_y; y < end_y && y < (mirror_y*2); y+=step) {
+  for (x = 0; x < smps.w; ++x) {
+    for (y = start_y; 
+         (step > 0 && y < end_y) || (step < 0 && y > end_y); 
+         y+=step) {
       smps.data[x][y] = smps.data[x][(mirror_y*2) - y];
     }
-  }  
-}
-
-void mirror_samples_forward(Samples smps, int mirror_y)
-{
-  mirror_samples(smps, mirror_y, mirror_y+1, smps.h, 1);
-}
-
-void mirror_samples_reverse(Samples smps, int mirror_y)
-{
-  mirror_samples(smps, mirror_y, mirror_y-1, 0, -1);
+  }
 }
 
 void sample_plane(Samples smps, Complex first, Complex second)
@@ -207,7 +206,6 @@ void sample_plane(Samples smps, Complex first, Complex second)
    */
 
   /* TODO: optimizations: omit center */
-  /* TODO: clean code */
 
   float width = second.r - first.r;
   float sample_dist = width / (float)(smps.w);
@@ -216,23 +214,21 @@ void sample_plane(Samples smps, Complex first, Complex second)
   /* mirror axis in image (x,y) coordinates */
   int mirror_y = (int)((first.i * (1.0 / sample_dist)) + 0.5);
   
-  Complex third;
-  third.r = first.r;
-  third.i = -first.i;
+  Complex mirror;
+  mirror.r = first.r;
+  mirror.i = 0.0;
 
   if (first.i > 0 && second.i < 0) { /* section crosses x-axis */
     if (fabs(first.i) >= fabs(second.i)) {
-      /* section above x-axis is larger than section below x-axis */
+      /* sub-section above x-axis is larger than section below x-axis */
       sample_plane_section(smps, 0, 0, smps.w, mirror_y+1, first, sample_dist);
-      mirror_samples_forward(smps, mirror_y);
+      mirror_samples(smps, mirror_y, mirror_y+1, smps.h, 1);
     }
     else {
-      /* section above x-axis is smaller than section below x-axis */
-      /* TODO: mirror in reverse */
-      sample_plane_section(smps, 0, 0, smps.w, mirror_y+1, first, sample_dist);
-      mirror_samples_forward(smps, mirror_y);
-      sample_plane_section(smps, 0, mirror_y*2, smps.w, smps.h, 
-                           third, sample_dist);
+      /* sub-section above x-axis is smaller than section below x-axis */
+      sample_plane_section(
+        smps, 0, mirror_y, smps.w, smps.h, mirror, sample_dist);
+      mirror_samples(smps, mirror_y, 0, mirror_y, 1);
     }
   }
   else { /* section does not cross x-axis */
@@ -269,7 +265,7 @@ int main(int argc, char* argv[])
 
   sample_plane(samples, c1, c2);
 
-  visualize(img, samples, tr_linear);
+  visualize(img, samples, tr_confuse);
 
   write_ppm(img, args.filename);
 
