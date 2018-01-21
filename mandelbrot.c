@@ -146,7 +146,7 @@ void sample_plane_section(Samples smps, int x1, int y1, int x2, int y2,
       sample.i -= sample_dist / 2.0;
       tmp_s += mandelbrot(sample);
 
-      sample.r -= sample_dist / 2.0;      
+      sample.r -= sample_dist / 2.0;
       tmp_s += mandelbrot(sample);
 
       smps.data[x][y] = (float)tmp_s / 4;
@@ -158,17 +158,43 @@ void sample_plane_section(Samples smps, int x1, int y1, int x2, int y2,
   }
 }
 
-
-void mirror_samples(Samples smps, int mirror_y)
+void mirror_samples(Samples smps, int mirror_y, int start_y, int end_y, 
+                    signed int step)
 {
+  /* 
+   * Fills sample data smps from horizontal axis 'start_y' (y-coordinate) with 
+   * samples taken from the mirror point (point in opposite direction with 
+   * same distance to mirror axis mirror_y).
+   * 'step' specifies iteration speed and direction (-1 --> mirror in reverse).
+   */
+
   int x, y;
-  for (x = 0; x < smps.w; ++x) {
-    for (y = mirror_y+1; y < smps.h && y < (mirror_y*2); ++y) {
+
+  if (start_y > smps.h) {
+    printf("%s\n", 
+           "ERROR: mirror_samples(): start point below sample height.");
+  }
+  if (end_y > smps.h) {
+    printf("%s\n", 
+           "ERROR: mirror_samples(): end point below sample height.");
+  }
+
+  for (x = 0; x < smps.w; x+=step) {
+    for (y = start_y; y < end_y && y < (mirror_y*2); y+=step) {
       smps.data[x][y] = smps.data[x][(mirror_y*2) - y];
     }
   }  
 }
 
+void mirror_samples_forward(Samples smps, int mirror_y)
+{
+  mirror_samples(smps, mirror_y, mirror_y+1, smps.h, 1);
+}
+
+void mirror_samples_reverse(Samples smps, int mirror_y)
+{
+  mirror_samples(smps, mirror_y, mirror_y-1, 0, -1);
+}
 
 void sample_plane(Samples smps, Complex first, Complex second)
 {
@@ -198,13 +224,13 @@ void sample_plane(Samples smps, Complex first, Complex second)
     if (fabs(first.i) >= fabs(second.i)) {
       /* section above x-axis is larger than section below x-axis */
       sample_plane_section(smps, 0, 0, smps.w, mirror_y+1, first, sample_dist);
-      mirror_samples(smps, mirror_y);
+      mirror_samples_forward(smps, mirror_y);
     }
     else {
       /* section above x-axis is smaller than section below x-axis */
       /* TODO: mirror in reverse */
       sample_plane_section(smps, 0, 0, smps.w, mirror_y+1, first, sample_dist);
-      mirror_samples(smps, mirror_y);
+      mirror_samples_forward(smps, mirror_y);
       sample_plane_section(smps, 0, mirror_y*2, smps.w, smps.h, 
                            third, sample_dist);
     }
@@ -243,7 +269,7 @@ int main(int argc, char* argv[])
 
   sample_plane(samples, c1, c2);
 
-  visualize(img, samples, tr_confuse);
+  visualize(img, samples, tr_linear);
 
   write_ppm(img, args.filename);
 
