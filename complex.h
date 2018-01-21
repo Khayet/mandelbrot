@@ -7,8 +7,8 @@ typedef struct Complex
   float i;
 } Complex;
 
-Complex addx(Complex c1, Complex c2);
-Complex multx(Complex c1, Complex c2);
+Complex addx(Complex, Complex);
+Complex multx(Complex, Complex);
 
 
 #endif /* COMPLEX_H */
