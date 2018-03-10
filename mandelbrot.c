@@ -1,6 +1,5 @@
 #include <stdio.h> /* FILE, printf, fprintf, fwrite, fclose */
 #include <stdlib.h> /* malloc, free */
-#include <string.h> /* TODO: still needed here? strcmp */
 #include <math.h> /* fabs */
 
 #include "complex.h" /* Complex, addx, multx, absx */
