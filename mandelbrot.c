@@ -107,7 +107,7 @@ void write_ppm(Image img, char* dest)
 int mandel(Complex c, Complex z, int i)
 {
   /*
-   * Recursively returns number of iterations until the absolute value of z > 
+   * Recursively returns number of iterations until the absolute value of z >
    * THRESHOLD or we reach a recursion boundary.
    */
 
@@ -120,7 +120,7 @@ int mandel(Complex c, Complex z, int i)
 int mandelbrot(Complex c)
 {
   /*
-   * Returns number of mandelbrot iterations for a point in the complex plane. 
+   * Returns number of mandelbrot iterations for a point in the complex plane.
    */
 
   Complex zero = { 0, 0 };
@@ -128,13 +128,13 @@ int mandelbrot(Complex c)
 }
 
 
-void sample_plane_section(Samples smps, int x1, int y1, int x2, int y2, 
+void sample_plane_section(Samples smps, int x1, int y1, int x2, int y2,
                           Complex start, float sample_dist)
 {
   /*
    * Samples a section of the complex plane, starting from the complex point
    * 'start' and (x1,y1) in xy-coordinates and ending at (x2,y2).
-   * 
+   *
    * Performs simple 4x super-sampling with equal spacing.
    */
 
@@ -164,31 +164,27 @@ void sample_plane_section(Samples smps, int x1, int y1, int x2, int y2,
   }
 }
 
-void mirror_samples(Samples smps, int mirror_y, int start_y, int end_y, 
-                    signed int step)
+void mirror_samples(Samples smps, int mirror_y, int start_y, int end_y)
 {
-  /* 
-   * Fills sample data smps from horizontal axis 'start_y' (y-coordinate) with 
-   * samples taken from the mirror point (point in opposite direction with 
+  /*
+   * Fills sample data smps from horizontal axis 'start_y' (y-coordinate) with
+   * samples taken from the mirror point (point in opposite direction with
    * same distance to mirror axis mirror_y).
-   * 'step' specifies iteration speed and direction (-1 --> mirror in reverse).
    */
 
   int x, y;
 
   if (start_y > smps.h) {
-    printf("%s\n", 
+    printf("%s\n",
            "ERROR: mirror_samples(): start point below samples height.");
   }
   if (end_y > smps.h) {
-    printf("%s\n", 
+    printf("%s\n",
            "ERROR: mirror_samples(): end point below samples height.");
   }
 
   for (x = 0; x < smps.w; ++x) {
-    for (y = start_y; 
-         (step > 0 && y < end_y) || (step < 0 && y > end_y); 
-         y+=step) {
+    for (y = start_y; y < end_y; ++y) {
       smps.data[x][y] = smps.data[x][(mirror_y*2) - y];
     }
   }
@@ -197,10 +193,10 @@ void mirror_samples(Samples smps, int mirror_y, int start_y, int end_y,
 void sample_plane(Samples smps, Complex first, Complex second)
 {
   /*
-   * Samples the section of the complex plane specified by first (top left) 
-   * and second (bottom right), using the resolution of smps and 
+   * Samples the section of the complex plane specified by first (top left)
+   * and second (bottom right), using the resolution of smps and
    * calculates for each sample the number of mandelbrot iterations.
-   * 
+   *
    * Performs simple 4x super-sampling (4 samples per pixel).
    */
 
@@ -212,7 +208,7 @@ void sample_plane(Samples smps, Complex first, Complex second)
   /* First optimization: symmetry along x-axis */
   /* mirror axis in image (x,y) coordinates */
   int mirror_y = (int)((first.i * (1.0 / sample_dist)) + 0.5);
-  
+
   Complex mirror;
   mirror.r = first.r;
   mirror.i = 0.0;
@@ -221,13 +217,13 @@ void sample_plane(Samples smps, Complex first, Complex second)
     if (fabs(first.i) >= fabs(second.i)) {
       /* sub-section above x-axis is larger than section below x-axis */
       sample_plane_section(smps, 0, 0, smps.w, mirror_y+1, first, sample_dist);
-      mirror_samples(smps, mirror_y, mirror_y+1, smps.h, 1);
+      mirror_samples(smps, mirror_y, mirror_y+1, smps.h);
     }
     else {
       /* sub-section above x-axis is smaller than section below x-axis */
       sample_plane_section(
         smps, 0, mirror_y, smps.w, smps.h, mirror, sample_dist);
-      mirror_samples(smps, mirror_y, 0, mirror_y, 1);
+      mirror_samples(smps, mirror_y, 0, mirror_y);
     }
   }
   else { /* section does not cross x-axis */
@@ -248,7 +244,7 @@ void visualize(Image img, Samples smps, Color (transfer_func)(int, int))
     for (y = 0; y < img.h; ++y) {
       img.data[x][y] = (transfer_func)(smps.data[x][y], maxiterations);
     }
-  } 
+  }
 }
 
 
