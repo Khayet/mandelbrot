@@ -174,6 +174,7 @@ void mirror_samples(Samples smps, int mirror_y, int start_y, int end_y)
 
   int x, y;
 
+  /* TODO: replace these with assert or print to stderr. */
   if (start_y > smps.h) {
     printf("%s\n",
            "ERROR: mirror_samples(): start point below samples height.");
@@ -190,11 +191,13 @@ void mirror_samples(Samples smps, int mirror_y, int start_y, int end_y)
   }
 }
 
-void sample_plane(Samples smps, Complex first, Complex second)
+
+
+void sample_plane(Samples smps, Complex top_left, Complex bottom_right)
 {
   /*
-   * Samples the section of the complex plane specified by first (top left)
-   * and second (bottom right), using the resolution of smps and
+   * Samples the section of the complex plane specified by top_left (top left)
+   * and bottom_right (bottom right), using the resolution of smps and
    * calculates for each sample the number of mandelbrot iterations.
    *
    * Performs simple 4x super-sampling (4 samples per pixel).
@@ -202,32 +205,32 @@ void sample_plane(Samples smps, Complex first, Complex second)
 
   /* TODO: optimizations: omit center */
 
-  float width = second.r - first.r;
+  float width = bottom_right.r - top_left.r;
   float sample_dist = width / (float)(smps.w);
 
-  /* First optimization: symmetry along x-axis */
-  /* mirror axis in image (x,y) coordinates */
-  int mirror_y = (int)((first.i * (1.0 / sample_dist)) + 0.5);
+  /* optimization: symmetry along r-axis -> use r-axis as mirror axis */
+  /* TODO: why is mirror_y defined by top_left? */
+  int mirror_y = (int)((top_left.i * (1.0 / sample_dist)) + 0.5);
+  int section_crosses_r_axis = top_left.i > 0 && bottom_right.i < 0;
 
   Complex mirror;
-  mirror.r = first.r;
+  mirror.r = top_left.r;
   mirror.i = 0.0;
 
-  if (first.i > 0 && second.i < 0) { /* section crosses x-axis */
-    if (fabs(first.i) >= fabs(second.i)) {
-      /* sub-section above x-axis is larger than section below x-axis */
-      sample_plane_section(smps, 0, 0, smps.w, mirror_y+1, first, sample_dist);
+  if (!section_crosses_r_axis) {
+    sample_plane_section(smps, 0, 0, smps.w, smps.h, top_left, sample_dist);
+  }
+  else {
+    if (fabs(top_left.i) >= fabs(bottom_right.i)) {
+      sample_plane_section(
+        smps, 0, 0, smps.w, mirror_y+1, top_left, sample_dist);
       mirror_samples(smps, mirror_y, mirror_y+1, smps.h);
     }
     else {
-      /* sub-section above x-axis is smaller than section below x-axis */
       sample_plane_section(
         smps, 0, mirror_y, smps.w, smps.h, mirror, sample_dist);
       mirror_samples(smps, mirror_y, 0, mirror_y);
     }
-  }
-  else { /* section does not cross x-axis */
-    sample_plane_section(smps, 0, 0, smps.w, smps.h, first, sample_dist);
   }
 }
 
