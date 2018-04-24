@@ -7,8 +7,8 @@
 #include "transfers.h" /* transfer functions */
 #include "args.h"
 
+/* TODO: this is pretty inconsistent, maybe get this from arguments?*/
 #define THRESHOLD 2
-
 int maxiterations = 500;
 
 typedef struct Image
@@ -105,23 +105,12 @@ void write_ppm(Image img, char* dest)
 
 
 /*
- * Recursively returns number of iterations until the absolute value of z >
- * THRESHOLD or we reach a recursion boundary.
- */
-int mandel(Complex c, Complex z, int i)
-{
-  if ((z.r*z.r + z.i*z.i) > THRESHOLD*THRESHOLD) return i;
-  if (i >= maxiterations) return i;
-  return mandel(c, addx(multx(z,z), c), ++i);
-}
-
-
-/*
  * Returns number of mandelbrot iterations for a point in the complex plane.
  */
 int mandelbrot(Complex c)
 {
-  Complex zero = { 0, 0 };
+  int iter = 0;
+  Complex cur_z = { 0, 0 };
 
    /* sample in cardioid */
   float q = (c.r - 0.25)*(c.r - 0.25) + c.i*c.i;
@@ -134,7 +123,14 @@ int mandelbrot(Complex c)
     return maxiterations;
   }
 
-  return mandel(c, zero, 0);
+  while ((iter < maxiterations) &&
+         (cur_z.r*cur_z.r + cur_z.i*cur_z.i) < THRESHOLD*THRESHOLD)
+  {
+    cur_z = addx(multx(cur_z,cur_z), c);
+    ++iter;
+  }
+
+  return iter;
 }
 
 
