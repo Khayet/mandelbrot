@@ -112,7 +112,7 @@ int mandelbrot(Complex c)
   int iter = 0;
   Complex cur_z = { 0, 0 };
 
-   /* sample in cardioid */
+  /* sample in cardioid */
   float q = (c.r - 0.25)*(c.r - 0.25) + c.i*c.i;
   if (q*(q + (c.r - 0.25)) < 0.25*c.i*c.i) {
     return maxiterations;
@@ -123,6 +123,7 @@ int mandelbrot(Complex c)
     return maxiterations;
   }
 
+  /* main mandelbrot loop - this is where the magic happens ;) */
   while ((iter < maxiterations) &&
          (cur_z.r*cur_z.r + cur_z.i*cur_z.i) < THRESHOLD*THRESHOLD)
   {
@@ -143,7 +144,6 @@ int mandelbrot(Complex c)
  */
 void sample_plane(Samples smps, Complex first, Complex second)
 {
-  /* TODO: optimizations: symmetry, omit center */
   float width = second.r - first.r;
   float height = first.i - second.i;
 
