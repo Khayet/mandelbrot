@@ -1,11 +1,10 @@
 #include <stdio.h> /* FILE, printf, fprintf, fwrite, fclose */
 #include <stdlib.h> /* malloc, free */
-#include <string.h> /* strcmp */
 
 #include "complex.h" /* Complex, addx, multx, absx */
 #include "color.h" /* Color */
 #include "transfers.h" /* transfer functions */
-#include "args.h"
+#include "args.h" /* argument handling */
 
 /* TODO: this is pretty inconsistent, maybe get this from arguments?*/
 #define THRESHOLD 2
