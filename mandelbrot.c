@@ -122,6 +122,13 @@ int mandel(Complex c, Complex z, int i)
 int mandelbrot(Complex c)
 {
   Complex zero = { 0, 0 };
+
+   /* Optimization: check if sample is inside the main cardioid */
+  float q = (c.r - 0.25)*(c.r - 0.25) + c.i*c.i;
+  if (q*(q + (c.r - 0.25)) < 0.25*c.i*c.i) {
+    return maxiterations;
+  }
+
   return mandel(c, zero, 0);
 }
 
