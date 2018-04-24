@@ -1,4 +1,4 @@
 *.exe
-.ppm
+*.ppm
 img/
-.out
+*.out
