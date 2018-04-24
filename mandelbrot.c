@@ -123,9 +123,14 @@ int mandelbrot(Complex c)
 {
   Complex zero = { 0, 0 };
 
-   /* Optimization: check if sample is inside the main cardioid */
+   /* sample in cardioid */
   float q = (c.r - 0.25)*(c.r - 0.25) + c.i*c.i;
   if (q*(q + (c.r - 0.25)) < 0.25*c.i*c.i) {
+    return maxiterations;
+  }
+
+  /* sample in big bulb (period-2) */
+  if ((c.r + 1)*(c.r + 1) + c.i*c.i < 0.0625) {
     return maxiterations;
   }
 
