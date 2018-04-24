@@ -3,9 +3,18 @@
 
 #include "color.h" /* Color */
 
-Color tr_confuse(int, int);
-Color tr_maximum(int, int);
-Color tr_minimum(int, int);
-Color tr_linear(int, int);
+
+/*
+ * A transfer function is a function mapping input values
+ * (in our case: number of mandelbrot iterations, and the maximum number
+ *  of iterations) to a color value (RGB).
+ *
+ * You can chose one of the following functions or define your own.
+ */
+
+Color tr_confuse(int iterations, int maxiterations);
+Color tr_maximum(int iterations, int maxiterations);
+Color tr_minimum(int iterations, int maxiterations);
+Color tr_linear(int iterations, int maxiterations);
 
 #endif /* TRANSFERS_H */
