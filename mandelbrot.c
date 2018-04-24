@@ -104,40 +104,37 @@ void write_ppm(Image img, char* dest)
 }
 
 
+/*
+ * Recursively returns number of iterations until the absolute value of z >
+ * THRESHOLD or we reach a recursion boundary.
+ */
 int mandel(Complex c, Complex z, int i)
 {
-  /*
-   * Recursively returns number of iterations until the absolute value of z >
-   * THRESHOLD or we reach a recursion boundary.
-   */
-
   if ((z.r*z.r + z.i*z.i) > THRESHOLD*THRESHOLD) return i;
   if (i >= maxiterations) return i;
   return mandel(c, addx(multx(z,z), c), ++i);
 }
 
 
+/*
+ * Returns number of mandelbrot iterations for a point in the complex plane.
+ */
 int mandelbrot(Complex c)
 {
-  /*
-   * Returns number of mandelbrot iterations for a point in the complex plane.
-   */
-
   Complex zero = { 0, 0 };
   return mandel(c, zero, 0);
 }
 
 
+/*
+ * Samples the section of the complex plane specified by first (top left)
+ * and second (bottom right), using the resolution of smps and
+ * calculates for each sample the number of mandelbrot iterations.
+ *
+ * Performs simple 4x super-sampling (4 samples per pixel).
+ */
 void sample_plane(Samples smps, Complex first, Complex second)
 {
-  /*
-   * Samples the section of the complex plane specified by first (top left)
-   * and second (bottom right), using the resolution of smps and
-   * calculates for each sample the number of mandelbrot iterations.
-   *
-   * Performs simple 4x super-sampling (4 samples per pixel).
-   */
-
   /* TODO: optimizations: symmetry, omit center */
   float width = second.r - first.r;
   float height = first.i - second.i;
@@ -172,13 +169,12 @@ void sample_plane(Samples smps, Complex first, Complex second)
 }
 
 
+/*
+ * Applies the callback transfer function for each sample in the sample plane
+ * and writes the resulting color values into img.
+ */
 void visualize(Image img, Samples smps, Color (transfer_func)(int, int))
 {
-  /*
-   * Applies the callback transfer function for each sample in the sample plane
-   * and writes the resulting color values into img.
-   */
-
   int x, y;
   for (x = 0; x < img.w; ++x) {
     for (y = 0; y < img.h; ++y) {
