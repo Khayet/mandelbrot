@@ -45,16 +45,6 @@ Image allocate_image_memory(int w, int h)
 }
 
 
-void free_image_memory(Image img)
-{
-  int i;
-  for (i = 0; i < img.w; ++i) {
-    free(img.data[i]);
-  }
-  free(img.data);
-}
-
-
 Samples allocate_samples_memory(int w, int h)
 {
   /* column-first -> our images are lists of columns */
@@ -72,16 +62,6 @@ Samples allocate_samples_memory(int w, int h)
   smps.w = w;
   smps.h = h;
   return smps;
-}
-
-
-void free_samples_memory(Samples smps)
-{
-  int i;
-  for (i = 0; i < smps.w; ++i) {
-    free(smps.data[i]);
-  }
-  free(smps.data);
 }
 
 
@@ -111,13 +91,13 @@ int mandelbrot(Complex c)
   int iter = 0;
   Complex cur_z = { 0, 0 };
 
-  /* sample in cardioid */
+  /* sample in cardioid? */
   float q = (c.r - 0.25)*(c.r - 0.25) + c.i*c.i;
   if (q*(q + (c.r - 0.25)) < 0.25*c.i*c.i) {
     return maxiterations;
   }
 
-  /* sample in big bulb (period-2) */
+  /* sample in big bulb (period-2)? */
   if ((c.r + 1)*(c.r + 1) + c.i*c.i < 0.0625) {
     return maxiterations;
   }
@@ -206,9 +186,6 @@ int main(int argc, char* argv[])
   visualize(img, samples, tr_linear);
 
   write_ppm(img, args.filename);
-
-  free_samples_memory(samples);
-  free_image_memory(img);
 
   printf("Done!\n");
   return 0;
