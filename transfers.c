@@ -67,10 +67,12 @@ Color tr_minimum(int iterations, int maxiterations)
 Color tr_linear(int iterations, int maxiterations)
 {
   Color c;
+  int it = 0;
+  it = (int)(((float)iterations / (float)maxiterations) * 255);
 
-  c.r = (int)(((float)iterations / (float)maxiterations) * 255);
-  c.g = (int)(((float)iterations / (float)maxiterations) * 255);
-  c.b = (int)(((float)iterations / (float)maxiterations) * 255);
+  c.r = 255 - it;
+  c.g = 255 - it;
+  c.b = 255 - it;
 
   return c;
 }
