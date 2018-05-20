@@ -8,7 +8,6 @@
 
 /* TODO: this is pretty inconsistent, maybe get this from arguments?*/
 #define THRESHOLD 2
-int maxiterations = 500;
 
 typedef struct Image
 {
@@ -86,7 +85,7 @@ void write_ppm(Image img, char* dest)
 /*
  * Returns number of mandelbrot iterations for a point in the complex plane.
  */
-int mandelbrot(Complex c)
+int mandelbrot(Complex c, int maxiterations)
 {
   int iter = 0;
   Complex cur_z = { 0, 0 };
@@ -121,7 +120,8 @@ int mandelbrot(Complex c)
  *
  * Performs simple 4x super-sampling (4 samples per pixel).
  */
-void sample_plane(Samples smps, Complex first, Complex second)
+void sample_plane(Samples smps, Complex first,
+                  Complex second, int maxiterations)
 {
   float width = second.r - first.r;
   float height = first.i - second.i;
@@ -135,16 +135,16 @@ void sample_plane(Samples smps, Complex first, Complex second)
   for (x = 0; x < smps.w; ++x) {
     for (y = 0; y < smps.h; ++y) {
 
-      tmp_s = mandelbrot(sample);
+      tmp_s = mandelbrot(sample, maxiterations);
 
       sample.r += sample_dist_r / 2.0;
-      tmp_s += mandelbrot(sample);
+      tmp_s += mandelbrot(sample, maxiterations);
 
       sample.i -= sample_dist_i / 2.0;
-      tmp_s += mandelbrot(sample);
+      tmp_s += mandelbrot(sample, maxiterations);
 
       sample.r -= sample_dist_r / 2.0;
-      tmp_s += mandelbrot(sample);
+      tmp_s += mandelbrot(sample, maxiterations);
 
       smps.data[x][y] = (float)tmp_s / 4;
 
@@ -160,7 +160,8 @@ void sample_plane(Samples smps, Complex first, Complex second)
  * Applies the callback transfer function for each sample in the sample plane
  * and writes the resulting color values into img.
  */
-void visualize(Image img, Samples smps, Color (transfer_func)(int, int))
+void visualize(Image img, Samples smps, int maxiterations,
+               Color (transfer_func)(int, int))
 {
   int x, y;
   for (x = 0; x < img.w; ++x) {
@@ -181,9 +182,9 @@ int main(int argc, char* argv[])
   Complex c1 = args.top_left;
   Complex c2 = args.bottom_right;
 
-  sample_plane(samples, c1, c2);
+  sample_plane(samples, c1, c2, args.maxiterations);
 
-  visualize(img, samples, tr_linear);
+  visualize(img, samples, args.maxiterations, tr_linear);
 
   write_ppm(img, args.filename);
 
